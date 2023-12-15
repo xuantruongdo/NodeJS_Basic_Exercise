@@ -9,20 +9,29 @@ async function fetchData (endpoint) {
     }
 }
 
+async function fetchOneComment (id) {
+    try {
+        const response = await fetch(`${url}/comments/${id}`);
+        return response.json();
+    }
+    catch (err) {
+        console.log(err);
+    }
+}
+
 
 async function print() {
-    const [users, posts, comments, postWithId1] = await Promise.all(
+    const [users, posts, comments] = await Promise.all(
         [
             fetchData('users'),
             fetchData('posts'),
             fetchData('comments'),
-            fetchData('posts/1'),
         ]
     )
     
     const enhancedUsers = users.map(user => {
-        const userPosts = posts.filter(post => post.userId === user.id);
-        const userComments = comments.filter(comment => userPosts.some(post => post.id === comment.postId));
+        let userPosts = posts.filter(post => post.userId === user.id);
+        let userComments = comments.filter((comment) => comment.email === user.email);
         return {
             ...user,
             posts: userPosts,
@@ -41,7 +50,7 @@ async function print() {
 
     let reformatUser = users.map((user) => {
         let userPosts = posts.filter((post) => post.userId === user.id);
-        let userComments = comments.filter((comment) => userPosts.some((post) => post.id === comment.postId));
+        let userComments = comments.filter((comment) => comment.email === user.email);
         return {
             id: user.id,
             name: user.name,
@@ -76,9 +85,10 @@ async function print() {
 
     console.log("7.Sort user by postsCount", sortUser);
 
-    postWithId1.comments = comments.filter(comment => comment.postId === postWithId1.id)
+    const post = await fetchOneComment(1)
+    post.comments = comments.filter(comment => comment.postId === post.id)
 
-    console.log("8. Reformat Posts", postWithId1);
+    console.log("8. Reformat Posts", post);
 
 }
 
