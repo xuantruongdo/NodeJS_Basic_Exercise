@@ -6,6 +6,7 @@ async function fetchData (endpoint) {
     }
     catch (err) {
         console.log(err);
+        return []
     }
 }
 
@@ -16,6 +17,7 @@ async function fetchOneComment (id) {
     }
     catch (err) {
         console.log(err);
+        return {}
     }
 }
 
@@ -30,8 +32,8 @@ async function print() {
     )
     
     const enhancedUsers = users.map(user => {
-        let userPosts = posts.filter(post => post.userId === user.id);
-        let userComments = comments.filter((comment) => comment.email === user.email);
+        const userPosts = posts.filter(post => post.userId === user.id);
+        const userComments = comments.filter((comment) => comment.email === user.email);
         return {
             ...user,
             posts: userPosts,
@@ -40,17 +42,16 @@ async function print() {
     });
     console.log("3.Users: ", enhancedUsers);
 
-    let usersWithMoreThan3Comments = users.filter((user) => {
-        let userComments = comments.filter((comment) => comment.email === user.email);
-        return userComments.length > 3;
+    const usersWithMoreThan3Comments = enhancedUsers.filter((user) => {
+        return user.comments.length > 3;
     });
     
 
     console.log("4.Users with more than 3 comments: ", usersWithMoreThan3Comments);
 
-    let reformatUser = users.map((user) => {
-        let userPosts = posts.filter((post) => post.userId === user.id);
-        let userComments = comments.filter((comment) => comment.email === user.email);
+    const reformatUser = users.map((user) => {
+        const userPosts = posts.filter((post) => post.userId === user.id);
+        const userComments = comments.filter((comment) => comment.email === user.email);
         return {
             id: user.id,
             name: user.name,
@@ -62,24 +63,26 @@ async function print() {
     });
     console.log("5.Reformat users: ", reformatUser);
 
-    const { maxPosts, maxComments, maxUserWithPost, maxUserWithComment } = reformatUser.reduce((acc, user) => {
+    const { maxPosts, maxUserWithPost } = reformatUser.reduce((acc, user) => {
         if (user.postsCount > acc.maxPosts) {
             acc.maxPosts = user.postsCount;
             acc.maxUserWithPost = user;
         }
-    
+        return acc;
+    }, { maxPosts: 0, maxUserWithPost: null });
+
+    const { maxComments, maxUserWithComment } = reformatUser.reduce((acc, user) => {
         if (user.commentsCount > acc.maxComments) {
             acc.maxComments = user.commentsCount;
             acc.maxUserWithComment = user;
         }
-    
         return acc;
-    }, { maxPosts: 0, maxComments: 0, maxUserWithPost: null, maxUserWithComment: null });
+    }, { maxComments: 0, maxUserWithComment: null });
     
-    console.log("6.User with the most posts:", maxUserWithPost);
-    console.log("User with the most comments:", maxUserWithComment);
+    console.log("6.1. User with the most posts:", maxUserWithPost);
+    console.log("6.2. User with the most comments:", maxUserWithComment);
 
-    let sortUser = reformatUser.sort(function (a, b) {
+    const sortUser = [...reformatUser].sort(function (a, b) {
         b.postsCount - a.postsCount
     })
 
